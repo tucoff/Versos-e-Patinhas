@@ -1,2 +1,95 @@
-<h1>Versos & Patinhas</h1>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Versos e Patinhas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        label, textarea, button {
+            display: block;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+    <script>
+            function adicionarTexto() {
+            var texto = document.getElementById('texto').value;
+            var li = document.createElement('li');
+            li.textContent = texto;
+            document.getElementById('lista').appendChild(li);
+            document.getElementById('texto').value = '';
 
+            // Enviar o texto para o servidor
+            fetch('/adicionarTexto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({texto: texto}),
+            });
+        }
+
+        function removerTexto() {
+            var lista = document.getElementById('lista');
+            lista.removeChild(lista.lastChild);
+        }
+
+        window.onload = function() {
+            fetch('/getTextos')
+                .then(response => response.json())
+                .then(data => {
+                    for (let texto of data.textos) {
+                        var li = document.createElement('li');
+                        li.textContent = texto;
+                        document.getElementById('lista').appendChild(li);
+                    }
+                });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <label for="texto">Escreva seu poema abaixo 🦎:</label>
+        <textarea id="texto" rows="4" cols="50" placeholder="Seja criativo e fofo!!!"></textarea>
+        <button onclick="adicionarTexto()">Publicar poema!</button>
+        <button onclick="removerTexto()">Tirar um poema da tela!!</button>
+        <ul id="lista">
+        </ul>
+    </div>
+</body>
+</html>

@@ -15,6 +15,7 @@ config = {
 
 firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
+db = firebase.database()
 
 app = Flask(__name__)
 
@@ -27,24 +28,35 @@ def authenticate():
     auth.sign_in_with_email_and_password(email,password)
     return jsonify({'token': 'autorizado'})
 
-# Rota para autenticar o usuário
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
-    auth.create_user_with_email_and_password(email,password)
+
+    # Criar um novo usuário
+    user = auth.create_user_with_email_and_password(email, password)
+
     return jsonify({'token': 'autorizado'})
 
-if __name__ == '__main__':
-    app.run(port=8000)
+@app.route('/api/dados', methods=['GET', 'POST'])
+def handle_data():
+    try:
+        if db.child("/").get().each()[0].val() is not None:
+            data = db.child("/").get().each()[0].val()
+            return jsonify(data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-# def signup():
-#   print("Sign up...")
-#   email = input("Enter email: ")
-#   password = input("Enter password: ")
-#   try:
-#     user = auth.create_user_with_email_and_password(email,password)
-#   except:
-#     print()
-#   return
+
+@app.route('/armazenar', methods=['GET', 'POST'])
+def armazenar():
+    data = request.get_json()
+    if data is not None:
+        db.child("/").remove()
+        db.push(data)
+        print('Dados recebidos do servidor JavaScript:', data)
+        return jsonify({'status': 'success'})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000)
